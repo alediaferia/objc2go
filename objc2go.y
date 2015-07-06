@@ -8,10 +8,10 @@
 extern int yyparse();
 extern int yylex();
 extern FILE* yyin;
- 
+extern int yylineno;
 void yyerror(const char *str)
 {
-    fprintf(stderr,"error: %s\n",str);
+    fprintf(stderr,"error: %s\nline %d\n", str, yylineno);
 }
  
 int yywrap()
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 %}
 
 %token PLUSTOK MINUSTOK SEMICOLON COLON OPAREN EPAREN PTRTOK
+%token OINTRFCTOK EINTRFCTOK COMMA ECHEVR OCHEVR OCLASSTOK
 
 %union
 {
@@ -100,15 +101,23 @@ ptr_type:
      static_type PTRTOK
 
 typen:
-     static_type | ptr_type;
+     static_type
+     |
+     ptr_type;
+
+typens:
+      | typens COMMA typen
+      ;
 
 method_arg:
       WORD COLON OPAREN typen EPAREN WORD
+      ;
 
 method_args:
       |
       method_args method_arg
       ;
+
 member_method_noargs:
        MINUSTOK OPAREN typen EPAREN WORD SEMICOLON
        ;
@@ -119,20 +128,51 @@ member_method_onearg:
 
 member_method_moreargs:
       MINUSTOK OPAREN typen EPAREN WORD COLON OPAREN typen EPAREN WORD method_args SEMICOLON
+      ;
 
 static_method_noargs:
       PLUSTOK OPAREN typen EPAREN WORD SEMICOLON
+      ;
 
 static_method_onearg:
       PLUSTOK OPAREN typen EPAREN WORD COLON OPAREN typen EPAREN WORD SEMICOLON
+      ;
 
 static_method_moreargs:
       PLUSTOK OPAREN typen EPAREN WORD COLON OPAREN typen EPAREN WORD method_args SEMICOLON
+      ;
 
-member_method: member_method_noargs | member_method_onearg | member_method_moreargs
+member_method: 
+             member_method_noargs
+             |
+             member_method_onearg 
+             |
+             member_method_moreargs
+             ;
 
-static_method: static_method_noargs | static_method_onearg | static_method_moreargs
+static_method:
+             static_method_noargs 
+             | 
+             static_method_onearg 
+             |
+             static_method_moreargs
+             ;
 
-method: member_method | static_method
+method:
+      member_method
+      |
+      static_method
+      ;
 
+class: 
+     OCLASSTOK typen SEMICOLON
+     |
+     OCLASSTOK typens SEMICOLON
+     ;
+
+interface_head:
+      OINTRFCTOK static_type COLON static_type
+      |
+      OINTRFCTOK static_type COLON static_type OCHEVR typens ECHEVR
+      ;
 %%
