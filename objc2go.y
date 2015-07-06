@@ -3,11 +3,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define YYSTYPE char*
+#define YYERROR_VERBOSE 1
+
+extern int yyparse();
+extern int yylex();
+extern FILE* yyin;
  
 void yyerror(const char *str)
 {
-        fprintf(stderr,"error: %s\n",str);
+    fprintf(stderr,"error: %s\n",str);
 }
  
 int yywrap()
@@ -25,7 +29,7 @@ void print_help(char *argv[]) {
     printf("\n\n");
 }
 
-char *output_dir;
+char *output_dir = "./";
 char *input_file;
   
 int main(int argc, char *argv[])
@@ -58,13 +62,31 @@ int main(int argc, char *argv[])
         }
         }
     }
+
+    FILE *input = fopen(input_file, "r"); 
+    if (input == NULL) {
+        fprintf(stderr, "Cannot open input file at path %s\n", input_file);
+        exit(1);
+    }
+    yyin = input;
+
     yyparse();
+
+    fclose(input);
 } 
 
 
 %}
 
-%token PLUSTOK MINUSTOK SEMICOLON COLON OPAREN EPAREN WORD PTRTOK
+%token PLUSTOK MINUSTOK SEMICOLON COLON OPAREN EPAREN PTRTOK
+
+%union
+{
+  int  n;
+  char *string;
+}
+
+%token <string> WORD
 
 %%
 methods:

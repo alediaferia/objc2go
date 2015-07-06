@@ -14,9 +14,18 @@
 \)                                return EPAREN;
 ([a-zA-Z]+[0-9]*)+                yylval=strdup(yytext); return WORD;
 (\*)*                             yylval=strdup(yytext); return PTRTOK;
-\n                                /* just ignore */;
-[ \t]+                            /* just ignore */;
-\/\*.*\*\/                        /* just ignore */;
-\/\/.*                            /* just ignore */;
+\@interface                       return OINTRFCTOK;
+\@end                             return EINTRFCTOK;
+\,                                return COMMA;
+\>                                return ECHEVR;
+\<                                return OCHEVR;
+\n                                /* just ignore newlines */;
+[ \t]+                            /* just ignore tabs */;
+\/\*(.*(\n|\t|\r)*)*\*\/          /* just ignore comments */;
+\/\/.*                            /* just ignore comments */;
+\#[a-zA-Z].*                      /* just ignore preprocessor */;
+typedef(.*(\n|\t|\r)*)*;          /* just ignore typedefs */;
+enum(.*(\n|\t|\r)*)*;             /* just ignore enums */;
+\@property(.*(\n|\t|\r)*)*;       /* just ignore properties */;
 %%
 
