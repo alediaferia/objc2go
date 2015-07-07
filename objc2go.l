@@ -4,7 +4,6 @@
 #define YYSTYPE char*
 #include "objc2go.h"
 
-int yylineno;
 %}
 
 %%
@@ -14,7 +13,8 @@ int yylineno;
 :                                 return COLON;
 \(                                return OPAREN;
 \)                                return EPAREN;
-([a-zA-Z]+[0-9]*)+                yylval=strdup(yytext); return WORD;
+const                             return CONSTTOK;
+([a-zA-Z_]+[0-9]*)+                yylval=strdup(yytext); return WORD;
 (\*)*                             return PTRTOK;
 \@interface                       return OINTRFCTOK;
 \@end                             return EINTRFCTOK;
@@ -22,7 +22,7 @@ int yylineno;
 \,                                return COMMA;
 \>                                return ECHEVR;
 \<                                return OCHEVR;
-\n                                /* just ignore newlines */;
+\n                                /* just ignore newlines */
 [ \t]+                            /* just ignore tabs */;
 \/\*(.*(\n|\t|\r)*)*\*\/          /* just ignore comments */;
 \/\/.*                            /* just ignore comments */;
@@ -30,7 +30,5 @@ int yylineno;
 typedef(.*(\n|\t|\r)*)*;          /* just ignore typedefs */;
 enum(.*(\n|\t|\r)*)*;             /* just ignore enums */;
 \@property(.*(\n|\t|\r)*)*;       /* just ignore properties */;
-
-^(.*)\n                           printf("%4d\t%s", ++yylineno, yytext);
 %%
 

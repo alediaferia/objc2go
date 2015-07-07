@@ -4,14 +4,14 @@
 #include <stdlib.h>
 
 #define YYERROR_VERBOSE 1
+#define YYDEBUG 1
 
 extern int yyparse();
 extern int yylex();
 extern FILE* yyin;
-extern int yylineno;
 void yyerror(const char *str)
 {
-    fprintf(stderr,"error: %s\nline %d\n", str, yylineno);
+    fprintf(stderr,"error: %s\nline: %d\n", str);
 }
  
 int yywrap()
@@ -21,7 +21,7 @@ int yywrap()
 
 void print_help(char *argv[]) {
     printf("Welcome to Obj2Go\n");
-    printf("------------------\n");
+    printf("------------------\n\n");
     printf("Usage: %s -i <input-file.h> [-o <output-dir>]\n", argv[0]);
     printf("\n");
     printf("-i <input-file.h>         Specifies the input Objective-C file to parse\n");
@@ -73,6 +73,8 @@ int main(int argc, char *argv[])
     yyparse();
 
     fclose(input);
+
+    return 0;
 } 
 
 
@@ -94,20 +96,35 @@ methods:
        | methods method
        ;
 
-static_type: 
-        WORD
-
-ptr_type:
-     static_type PTRTOK
+stype: /* simple type */
+	  WORD
+	 ;
+      
+cstype: /* const simple type */
+      CONSTTOK stype
+      ;
+    
+ptype: /* pointer type */
+     stype PTRTOK
+     ;
+     
+ctypep: /* const type pointer */
+      CONSTTOK ptype
+      ;
 
 typen:
-     static_type
+     WORD
      |
-     ptr_type;
+     WORD PTRTOK
+     ;
 
-typens:
-      | typens COMMA typen
+ltypens: /* empty */
+      | ltypens COMMA typen
       ;
+
+ptypens: /* protocol types defs */
+       | ptypens COMMA WORD
+       ;
 
 method_arg:
       WORD COLON OPAREN typen EPAREN WORD
@@ -173,6 +190,6 @@ class:
 interface_head:
       OINTRFCTOK static_type COLON static_type
       |
-      OINTRFCTOK static_type COLON static_type OCHEVR typens ECHEVR
+      OINTRFCTOK static_type COLON static_type OCHEVR ptypens ECHEVR
       ;
 %%
