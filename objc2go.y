@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     FILE *input = fopen(input_file, "r"); 
     if (input == NULL) {
-        fprintf(stderr, "Cannot open input file at path %s\n", input_file);
+        fprintf(stderr, "Error:\ncannot open input file at path:\n%s\n", input_file);
         exit(1);
     }
     yyin = input;
@@ -92,38 +92,32 @@ int main(int argc, char *argv[])
 %token <string> WORD
 
 %%
-methods:
-       | methods method
-       ;
 
+/* lvar decls/types */
 stype: /* simple type */
-	  WORD
-	 ;
+     WORD
+     ;
       
 cstype: /* const simple type */
       CONSTTOK stype
       ;
     
 ptype: /* pointer type */
-     stype PTRTOK
+     | ptype PTRTOK
+     | stype PTRTOK
      ;
      
 ctypep: /* const type pointer */
       CONSTTOK ptype
       ;
 
-typen:
-     WORD
-     |
-     WORD PTRTOK
+typecp:
+     stype CONSTTOK
      ;
 
-ltypens: /* empty */
-      | ltypens COMMA typen
-      ;
-
-ptypens: /* protocol types defs */
-       | ptypens COMMA WORD
+/* methods */
+methods:
+       | methods method
        ;
 
 method_arg:
@@ -181,12 +175,14 @@ method:
       static_method
       ;
 
+/* @class */
 class: 
      OCLASSTOK typen SEMICOLON
      |
      OCLASSTOK typens SEMICOLON
      ;
 
+/* @interface */
 interface_head:
       OINTRFCTOK static_type COLON static_type
       |
